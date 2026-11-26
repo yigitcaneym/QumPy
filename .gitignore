@@ -13,3 +13,11 @@ venv/
 docs/_build/
 docs/examples/
 docs/jupyter_execute/
+
+# Never commit credentials
+.env
+.env.*
+*.pem
+*.key
+.pypirc
+qiskit-ibm.json

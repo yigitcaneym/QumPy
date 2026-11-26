@@ -1,0 +1,33 @@
+QumPy
+Copyright 2026 QumPy contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+QumPy is an independent project. It is not affiliated with, sponsored by or
+endorsed by IBM or the Qiskit project. "Qiskit" and "IBM Quantum" are
+trademarks of International Business Machines Corporation; they are used here
+only to describe what QumPy works with.
+
+Parts of QumPy are adapted from the following works, all licensed under the
+Apache License, Version 2.0. They were modified for QumPy.
+
+* Qiskit Textbook, "Quantum Fourier Transform"
+  https://github.com/Qiskit/textbook
+  Copyright IBM and its contributors.
+  Used in: qumpy/algorithms.py (_qft_rotations, the recursive QFT construction).
+
+* qiskit-algorithms tutorial "Quantum Real Time Evolution using Trotterization"
+  https://github.com/qiskit-community/qiskit-algorithms
+  Copyright IBM and its contributors.
+  Used in: qumpy/dynamics.py (ising_chain, magnetization, zz_correlation).
+
+* Qiskit Community Tutorials, "Grover's algorithm" and "Deutsch-Jozsa"
+  https://github.com/qiskit-community/qiskit-community-tutorials
+  Copyright IBM and its contributors.
+  The exactly-1 3-SAT example formula and the oracle constructions in
+  qumpy/algorithms.py (sat_oracle, dj_oracle) follow these tutorials; the
+  code is a new implementation.
+
+QumPy depends on, but does not include, Qiskit, Qiskit Aer and Qiskit IBM
+Runtime (Apache-2.0), NumPy, SciPy and SymPy (BSD), Matplotlib (PSF-based
+Matplotlib license) and pylatexenc (MIT).

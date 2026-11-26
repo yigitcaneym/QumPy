@@ -158,6 +158,14 @@ See [Common errors](https://yigitcaneym.github.io/QumPy/installation.html#common
 guide: missing git, `No module named 'qumpy'` in Jupyter or on macOS,
 PowerShell blocking activation scripts, and the noisy backend.
 
-## License
+## License and credits
 
-Apache 2.0, the same license as Qiskit.
+Apache 2.0, the same license as Qiskit. See [LICENSE](https://github.com/yigitcaneym/QumPy/blob/main/LICENSE)
+and [NOTICE](https://github.com/yigitcaneym/QumPy/blob/main/NOTICE).
+
+A few constructions are adapted from the Qiskit Textbook, the Qiskit Community
+Tutorials and the qiskit-algorithms tutorials (all Apache-2.0); NOTICE lists
+them. QumPy doesn't include any course materials.
+
+QumPy is an independent project, not affiliated with or endorsed by IBM or
+the Qiskit project. Qiskit and IBM Quantum are trademarks of IBM.

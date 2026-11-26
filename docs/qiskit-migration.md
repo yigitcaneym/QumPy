@@ -1,6 +1,7 @@
 # Coming from Qiskit (course notebooks → QumPy)
 
-Each block shows code from the course notebooks and the QumPy version of it.
+Each block shows a short excerpt of typical Qiskit code, in the style of the
+course notebooks, next to the QumPy version of it.
 You don't have to convert everything: QumPy objects are Qiskit objects, so
 both styles mix freely.
 

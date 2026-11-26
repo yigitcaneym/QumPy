@@ -30,7 +30,11 @@ from .results import Counts
 
 
 def _qft_rotations(qc, n):
-    """The recursive construction from the course notebook (no swaps)."""
+    """Recursive QFT construction (no swaps).
+
+    Adapted from the Qiskit Textbook, "Quantum Fourier Transform"
+    (https://github.com/Qiskit/textbook, Apache-2.0, see NOTICE).
+    """
     if n == 0:
         return
     n -= 1
@@ -272,7 +276,8 @@ def sat_oracle(formula, exactly_one=True):
 
     ``formula`` is a list of clauses; each clause is a list of literals:
     ``3`` means variable x3, ``-3`` means NOT x3 (as in the course's Grover
-    notebook). ``exactly_one=True`` gives the course's exactly-1 3-SAT (every
+    notebook). ``exactly_one=True`` gives the exactly-1 3-SAT of the Qiskit
+    Community Tutorials' Grover notebook, also used in the course (every
     clause must have exactly one true literal); ``False`` gives ordinary SAT.
 
     Registers: ``fin`` (one qubit per variable, x1 = qubit 0), ``fout`` (the

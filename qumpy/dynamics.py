@@ -62,6 +62,9 @@ def ising_chain(L, J=1.0, h=1.0, alpha=0.0):
     """Transverse/longitudinal field Ising chain (course notebook QCTP_09).
 
     H = -J sum Z_i Z_{i+1} - h sin(alpha) sum Z_i - h cos(alpha) sum X_i
+
+    Adapted from the qiskit-algorithms tutorial "Quantum Real Time Evolution
+    using Trotterization" (Apache-2.0, see NOTICE).
     """
     zz = [("ZZ", [i, i + 1], -J) for i in range(L - 1)]
     z = [("Z", [i], -h * np.sin(alpha)) for i in range(L)]
