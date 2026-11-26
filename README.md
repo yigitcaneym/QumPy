@@ -173,18 +173,6 @@ The second command makes a regular, non-editable install, which doesn't need a
 environment where QumPy is installed. In a notebook, run
 `import sys; sys.executable` and compare.
 
-## Türkçe özet
-
-QumPy, Quantum Computing dersinde kullandığımız Qiskit, Aer, `quantum_info`,
-görselleştirme ve Trotter araçlarını tek bir `import qumpy as qp` altında
-toplar. Tüm ayarlar `Qum` nesnesindedir (`Qum.shots = 1000`,
-`Qum.precision = 3`, `Qum.backend = "noisy"`). Kapılar zincirlenebilir
-(`Circuit(2).h(0).cx(0, 1)`), hatalar ne yapmanız gerektiğini söyler, ve
-Grover, QFT, QPE, Deutsch–Jozsa ve teleportation hazır fonksiyon olarak
-gelir. Döndürülen her şey normal bir Qiskit nesnesidir, yani dersteki Qiskit
-kodunuzla birlikte kullanabilirsiniz. Başlamak için
-[docs/getting-started.md](docs/getting-started.md) ve `qp.cheatsheet()`.
-
 ## License
 
 Apache 2.0, the same license as Qiskit.
