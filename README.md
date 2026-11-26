@@ -55,7 +55,7 @@ python -c "import qumpy as qp; qp.versions()"
 > **Got `Cannot find command 'git'`?** You used a link starting with
 > `git+https://`, which needs git. Use the `.zip` command above instead.
 
-The [installation guide](docs/installation.md) covers virtual environments,
+The [installation guide](https://yigitcaneym.github.io/QumPy/installation.html) covers virtual environments,
 Jupyter, updating to a new version, development installs and fixes for
 common errors.
 
@@ -114,17 +114,17 @@ replaces.
 ## Documentation
 
 **Website: <https://yigitcaneym.github.io/QumPy/>** (searchable, with an API
-reference generated from the code). The same pages are in [`docs/`](docs/):
+reference generated from the code). The same pages are in [`docs/`](https://github.com/yigitcaneym/QumPy/tree/main/docs):
 
 | Page | What's in it |
 |------|--------------|
-| [Installation](docs/installation.md) | installing, updating, and fixing common errors |
-| [Getting started](docs/getting-started.md) | a 15-minute tour, from a ket to Grover |
-| [Concepts](docs/concepts.md) | qubit order, `state()` vs `run()`, ideal vs noisy, the `Qum` object |
-| [API reference](docs/api-reference.md) | every function and method |
-| [Coming from Qiskit](docs/qiskit-migration.md) | course notebook code → QumPy, side by side |
-| [Simple example](examples/Simple_Example.ipynb) | draw a Bell circuit, measure it, plot a histogram |
-| [Tutorial notebook](examples/QumPy_Tutorial.ipynb) | runnable version of the course TPs |
+| [Installation](https://yigitcaneym.github.io/QumPy/installation.html) | installing, updating, and fixing common errors |
+| [Getting started](https://yigitcaneym.github.io/QumPy/getting-started.html) | a 15-minute tour, from a ket to Grover |
+| [Concepts](https://yigitcaneym.github.io/QumPy/concepts.html) | qubit order, `state()` vs `run()`, ideal vs noisy, the `Qum` object |
+| [API reference](https://yigitcaneym.github.io/QumPy/api-reference.html) | every function and method |
+| [Coming from Qiskit](https://yigitcaneym.github.io/QumPy/qiskit-migration.html) | course notebook code → QumPy, side by side |
+| [Simple example](https://yigitcaneym.github.io/QumPy/examples/Simple_Example.html) | draw a Bell circuit, measure it, plot a histogram |
+| [Tutorial notebook](https://yigitcaneym.github.io/QumPy/examples/QumPy_Tutorial.html) | runnable version of the course TPs |
 
 ## Tests
 
@@ -154,7 +154,7 @@ Then open `docs/_build/html/index.html`.
 
 ## Troubleshooting
 
-See [Common errors](docs/installation.md#common-errors) in the installation
+See [Common errors](https://yigitcaneym.github.io/QumPy/installation.html#common-errors) in the installation
 guide: missing git, `No module named 'qumpy'` in Jupyter or on macOS,
 PowerShell blocking activation scripts, and the noisy backend.
 

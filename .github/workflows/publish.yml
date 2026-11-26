@@ -1,0 +1,82 @@
+name: Publish to PyPI
+
+# Uploads QumPy using PyPI "trusted publishing": no API token is stored in
+# GitHub. One-time setup on pypi.org / test.pypi.org is described in
+# RELEASING.md.
+#
+#   * Publishing a GitHub release  -> uploads to PyPI
+#   * Running it by hand (Actions -> Publish to PyPI -> Run workflow)
+#                                  -> uploads to TestPyPI, for a dry run
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check that the release tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          VERSION=$(python -c "import ast,re;print(re.search(r'__version__ = \"(.+?)\"', open('qumpy/__init__.py').read()).group(1))")
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "package version: $VERSION, release tag: $TAG"
+          test "$VERSION" = "$TAG"
+      - name: Build sdist and wheel
+        run: |
+          pip install build twine
+          python -m build
+          twine check --strict dist/*
+      - name: Test the built wheel
+        env:
+          MPLBACKEND: Agg
+        run: |
+          pip install "$(ls dist/*.whl)[noisy,dev]"
+          mkdir /tmp/run && cp -R tests /tmp/run/ && cd /tmp/run && pytest -q tests
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/qumpy
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  pypi:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/qumpy
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

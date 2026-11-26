@@ -290,11 +290,14 @@ def test_display_does_not_crash(capsys):
 # ------------------------------------------------ IBM hardware (SamplerV2)
 def test_sampler_path_matches_backend_run():
     c = qp.Circuit(a=1, b=1, bits={"ca": 1, "cb": 1}).x("a").measure("a", "ca").measure("b", "cb")
-    via_run = c.run(shots=200, backend="noisy", seed=5)
-    via_sampler = c.run(shots=200, backend="noisy", seed=5, use_sampler=True)
-    assert via_sampler == via_run                      # same format, same numbers
-    assert all(" " in k for k in via_sampler)          # 'cb ca' register order
-    assert via_sampler.most_likely() == "0 1"
+    via_run = c.run(shots=400, backend="noisy", seed=5)
+    via_sampler = c.run(shots=400, backend="noisy", seed=5, use_sampler=True)
+    # same format ('cb ca': last register first, space-separated) ...
+    assert set(via_sampler) <= {"0 0", "0 1", "1 0", "1 1"}
+    assert via_sampler.shots == 400 and sum(via_sampler.values()) == 400
+    assert via_sampler.most_likely() == via_run.most_likely() == "0 1"
+    # ... and the same distribution (exact numbers depend on the runtime version)
+    assert abs(via_sampler.probability("0 1") - via_run.probability("0 1")) < 0.1
 
 
 def test_sampler_auto_measure():
