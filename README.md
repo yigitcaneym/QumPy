@@ -69,7 +69,7 @@ function.
 | `Qum.shots`        | `1024`     | repetitions used by `.run()`                           |
 | `Qum.precision`    | `4`        | decimals when printing states and matrices (also numpy) |
 | `Qum.seed`         | `None`     | random seed, for reproducible results                  |
-| `Qum.backend`      | `"ideal"`  | `"ideal"` simulator or `"noisy"` fake IBM device       |
+| `Qum.backend`      | `"ideal"`  | `"ideal"` simulator, `"noisy"` fake device or `"ibm"` real device |
 | `Qum.device`       | `"manila"` | noisy device: `"manila"` (5 qubits) or `"generic"`     |
 | `Qum.draw`         | `"mpl"`    | drawing style: `"mpl"`, `"text"`, `"latex"`            |
 | `Qum.auto_measure` | `True`     | measure all qubits automatically if you forgot to      |
@@ -101,10 +101,11 @@ QumError: 'shot' is not a QumPy setting.
 | Linear algebra | `inner`, `outer`, `norm`, `dagger`, `eig`, `commutator`, `expm`, `is_unitary`, `is_hermitian` |
 | Gates         | `X Y Z H S T I`, `Rx Ry Rz P U`, `CNOT CZ SWAP TOFFOLI`, `tensor`, `apply`, `random_unitary`, `equal` |
 | Circuits      | `Circuit(n)`, named registers, `.init()`, `.gate()`, `.measure()`, `.if_bit()`, `.draw()`, `.stats()`, `.compile()` |
-| Running       | `.state()`, `.unitary()`, `.probabilities()`, `.run()`, `backend="noisy"` |
+| Running       | `.state()`, `.unitary()`, `.probabilities()`, `.run()`, `backend="noisy"`, real IBM devices (`backend="ibm"`) |
 | Showing       | `show`, `dirac`, `latex`, `bloch`, `qsphere`, `histogram`, `versions` |
 | Density matrices | `density_matrix`, `keep`, `partial_trace`, `purity`, `entropy`, `fidelity`, `is_entangled`, `concurrence` |
-| Algorithms    | `qft`, `inverse_qft`, `teleportation`, `deutsch_jozsa`, `bernstein_vazirani`, `grover`, `phase_estimation` |
+| Algorithms    | `qft`, `inverse_qft`, `teleportation`, `deutsch_jozsa`, `bernstein_vazirani`, `grover` (also with your own oracle), `sat_oracle`, `phase_estimation` |
+| Parameters    | `Parameter("theta")`, `c.assign(theta=...)` |
 | Dynamics      | `hamiltonian`, `ising_chain`, `trotter_circuit`, `evolve`, `time_evolution`, `expectation` |
 
 Run `qp.cheatsheet()` to print every QumPy command next to the Qiskit code it

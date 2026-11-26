@@ -8,3 +8,7 @@ class QumError(Exception):
         self.hint = hint
         text = message if not hint else f"{message}\n  Hint: {hint}"
         super().__init__(text)
+
+
+class QumAttributeError(QumError, AttributeError):
+    """A missing attribute / gate. Also an AttributeError, so hasattr() works."""

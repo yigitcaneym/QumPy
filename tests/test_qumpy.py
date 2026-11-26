@@ -285,3 +285,103 @@ def test_display_does_not_crash(capsys):
     out = capsys.readouterr().out
     assert "QumPy" in out and "qiskit" in out
     assert r"\begin{bmatrix}" in qp.latex(qp.X)
+
+
+# ------------------------------------------------ IBM hardware (SamplerV2)
+def test_sampler_path_matches_backend_run():
+    c = qp.Circuit(a=1, b=1, bits={"ca": 1, "cb": 1}).x("a").measure("a", "ca").measure("b", "cb")
+    via_run = c.run(shots=200, backend="noisy", seed=5)
+    via_sampler = c.run(shots=200, backend="noisy", seed=5, use_sampler=True)
+    assert via_sampler == via_run                      # same format, same numbers
+    assert all(" " in k for k in via_sampler)          # 'cb ca' register order
+    assert via_sampler.most_likely() == "0 1"
+
+
+def test_sampler_auto_measure():
+    with pytest.warns(UserWarning):
+        counts = qp.Circuit(2).x(1).run(shots=20, use_sampler=True, backend="noisy")
+    assert counts.most_likely() == "10"
+
+
+def test_ibm_without_account_gives_setup_hint(monkeypatch):
+    import qiskit_ibm_runtime
+
+    from qumpy import ibm
+
+    def fail(*a, **k):
+        raise RuntimeError("no account")
+
+    monkeypatch.setattr(qiskit_ibm_runtime, "QiskitRuntimeService", fail)
+    monkeypatch.setattr(ibm, "_SERVICE", {})
+    with pytest.raises(QumError, match="save_account"):
+        qp.ibm_backend()
+
+
+def test_backend_info():
+    info = qp.backend_info(qp.noisy_backend(), show=False)
+    assert info["qubits"] == 5 and "cx" in info["basis gates"]
+
+
+# ------------------------------------------------ Grover with an oracle
+COURSE_FORMULA = [[1, 2, -3], [-1, -2, -3], [-1, 2, 3]]   # Grover.ipynb
+
+
+def test_sat_oracle_course_formula():
+    o = qp.sat_oracle(COURSE_FORMULA)
+    assert o.solutions == ["101"]
+    assert list(o.registers) == ["fin", "fout", "aux"] and o.num_qubits == 7
+    # reversible and clean: fout flipped only for solutions, aux back to |0>
+    for k in range(8):
+        bits = format(k, "03b")
+        c = qp.Circuit(7)
+        for i, b in enumerate(reversed(bits)):
+            if b == "1":
+                c.x(i)
+        c.add(o)
+        expected = ("1" if bits in o.solutions else "0") + bits     # fout (qubit 3) + fin
+        assert qp.equal(c.state(), qp.ket("000" + expected))
+
+
+def test_grover_with_sat_oracle():
+    counts = qp.grover(oracle=qp.sat_oracle(COURSE_FORMULA)).run(shots=1000)
+    assert counts.shots == 1000 and all(len(k) == 3 for k in counts)
+    assert counts.probability("101") > 0.85
+
+
+def test_grover_or_sat_and_phase_oracle():
+    o = qp.sat_oracle([[1], [2], [-3]], exactly_one=False)
+    assert o.solutions == ["011"]
+    assert qp.grover(oracle=o).run(shots=500).probability("011") > 0.85
+    g = qp.grover(oracle=qp.grover_oracle("110"), n=3)
+    assert g.run(shots=500).probability("110") > 0.85
+
+
+def test_grover_argument_errors():
+    with pytest.raises(QumError):
+        qp.grover()
+    with pytest.raises(QumError):
+        qp.grover("11", oracle=qp.grover_oracle("11"))
+    with pytest.raises(QumError, match="how many qubits"):
+        qp.grover(oracle=qp.Circuit(3))
+    with pytest.raises(QumError):
+        qp.sat_oracle([[1, 1]])
+
+
+def test_hasattr_on_circuit():
+    c = qp.Circuit(1)
+    assert not hasattr(c, "solutions")
+    assert getattr(c, "solutions", "x") == "x"
+    with pytest.raises(QumError):
+        c.hadamrd(0)
+
+
+# ------------------------------------------------ parameters
+def test_parameters_assign():
+    th, ph, la = qp.Parameter("theta"), qp.Parameter("phi"), qp.Parameter("lambda")
+    c = qp.Circuit(1).u(th, ph, la, 0)
+    with pytest.raises(QumError, match="free parameters"):
+        c.state()
+    with pytest.raises(QumError, match="no free parameter"):
+        c.assign(thta=1)
+    c.assign({th: qp.pi}, phi=0, **{"lambda": qp.pi})
+    assert qp.equal(c.state(), qp.ket("1"))

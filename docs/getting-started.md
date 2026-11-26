@@ -158,6 +158,16 @@ qpe = qp.phase_estimation(U, n_counting=3, eigenstate="1")
 qp.estimated_phase(qpe.run())                      # 0.375
 ```
 
+Grover also takes your own oracle. The 3-SAT problem from the course's Grover
+notebook is built in:
+
+```python
+formula = [[1, 2, -3], [-1, -2, -3], [-1, 2, 3]]   # -3 means NOT x3
+oracle = qp.sat_oracle(formula)                   # exactly-1 3-SAT
+oracle.solutions                                  # ['101']
+qp.grover(oracle=oracle).run().plot()
+```
+
 Each of these returns a `Circuit`, so you can draw it, inspect it with
 `.stats()` or add gates before running it.
 
@@ -184,6 +194,30 @@ res = qp.time_evolution(
                  "Mean spin correlation": qp.zz_correlation(L)},
 )
 res.plot(exact=True)
+```
+
+## 10. Parameters
+
+```python
+theta = qp.Parameter("theta")
+c = qp.Circuit(1).ry(theta, 0)
+c.draw()                         # shows θ
+c.assign(theta=qp.pi / 2)        # give it a value
+qp.dirac(c.state())              # '0.7071|0⟩ + 0.7071|1⟩'
+```
+
+## 11. Real IBM quantum computers
+
+After saving your IBM Quantum account once (see the
+[API reference](api-reference.md#real-ibm-devices)):
+
+```python
+qp.ibm_backends()                    # devices you can use
+dev = qp.ibm_backend()               # the least busy one
+qp.backend_info(dev)
+c = qp.bell_circuit(measure=True)
+c.compile(backend=dev).draw()        # the circuit as the chip will run it
+c.run(backend=dev).plot()            # waits in IBM's queue, then plots
 ```
 
 ## Next steps

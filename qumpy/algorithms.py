@@ -17,6 +17,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+from qiskit import QuantumCircuit
 
 from .circuit import Circuit
 from .config import Qum
@@ -235,22 +236,140 @@ def grover_iterations(n, num_marked=1):
     return max(1, int(math.floor(math.pi / 4 * math.sqrt(2**n / num_marked))))
 
 
-def grover(marked, iterations=None, measure=True):
-    """Grover search for one or more marked bitstrings, e.g. ``grover("101")``."""
-    marked = [marked] if isinstance(marked, str) else list(marked)
-    n = len(marked[0])
-    if n < 2:
-        raise QumError("Grover search needs at least 2 qubits.")
-    iterations = grover_iterations(n, len(marked)) if iterations is None else iterations
-    oracle, diff = grover_oracle(marked, n), diffuser(n)
-    c = Circuit(n, name="Grover")
+def _literal_true_flips(qc, clause):
+    """X on the qubits of negative literals, so that qubit = 1 <=> literal true."""
+    for lit in clause:
+        if lit < 0:
+            qc.x(-lit - 1)
+
+
+def _clause_check(qc, clause, target, exactly_one):
+    """Flip ``target`` iff the clause is satisfied (reversible, no garbage)."""
+    qubits = [abs(lit) - 1 for lit in clause]
+    if exactly_one:
+        # exactly one literal true  <=>  odd number true AND not all three true
+        _literal_true_flips(qc, clause)
+        for q in qubits:
+            qc.cx(q, target)
+        if len(qubits) == 3:
+            qc.mcx(qubits, target)
+        _literal_true_flips(qc, clause)
+    else:
+        # at least one literal true  <=>  NOT (all literals false)
+        positives = [abs(lit) - 1 for lit in clause if lit > 0]
+        if positives:
+            qc.x(positives)              # now qubit = 1 <=> literal false
+        qc.mcx(qubits, target)
+        qc.x(target)
+        if positives:
+            qc.x(positives)
+
+
+def sat_oracle(formula, exactly_one=True):
+    """Bit-flip oracle for a SAT formula in conjunctive normal form.
+
+    ``formula`` is a list of clauses; each clause is a list of literals:
+    ``3`` means variable x3, ``-3`` means NOT x3 (as in the course's Grover
+    notebook). ``exactly_one=True`` gives the course's exactly-1 3-SAT (every
+    clause must have exactly one true literal); ``False`` gives ordinary SAT.
+
+    Registers: ``fin`` (one qubit per variable, x1 = qubit 0), ``fout`` (the
+    output qubit, flipped when the formula is satisfied), ``aux`` (one per
+    clause, returned to |0>). ``oracle.solutions`` lists the satisfying
+    assignments as bitstrings (Qiskit order: x1 is the rightmost bit).
+    """
+    if not formula or not all(clause for clause in formula):
+        raise QumError("The formula needs at least one non-empty clause.",
+                       hint="Example: [[1, 2, -3], [-1, -2, -3], [-1, 2, 3]]")
+    for clause in formula:
+        if any(not isinstance(lit, (int, np.integer)) or lit == 0 for lit in clause):
+            raise QumError(f"Literals must be non-zero integers, got clause {clause}.")
+        if len({abs(lit) for lit in clause}) != len(clause):
+            raise QumError(f"Clause {clause} uses the same variable twice.")
+        if exactly_one and len(clause) > 3:
+            raise QumError(f"Exactly-one clauses may have at most 3 literals, got {clause}.")
+    n = max(abs(lit) for clause in formula for lit in clause)
+    m = len(formula)
+    c = Circuit(fin=n, fout=1, aux=m, name="SAT oracle")
+    qc = c.qc
+    aux = list(range(n + 1, n + 1 + m))
+    for clause, target in zip(formula, aux):
+        _clause_check(qc, clause, target, exactly_one)
+    qc.mcx(aux, n)                               # all clauses satisfied -> flip fout
+    for clause, target in reversed(list(zip(formula, aux))):
+        _clause_check(qc, clause, target, exactly_one)   # uncompute aux
+
+    def satisfied(bits):
+        for clause in formula:
+            truth = [bits[abs(lit) - 1] == (lit > 0) for lit in clause]
+            if (sum(truth) != 1) if exactly_one else (not any(truth)):
+                return False
+        return True
+
+    c.solutions = [format(k, f"0{n}b") for k in range(2**n)
+                   if satisfied([(k >> i) & 1 == 1 for i in range(n)])]
+    c.num_inputs = n
+    return c
+
+
+def grover(marked=None, iterations=None, measure=True, oracle=None, n=None, num_solutions=None):
+    """Grover search.
+
+    * ``grover("101")`` or ``grover(["0110", "1001"])``: search for these
+      bitstrings (QumPy builds the oracle).
+    * ``grover(oracle=my_oracle, n=3)``: use your own oracle on the first ``n``
+      qubits. If the oracle has exactly ``n`` qubits it must be a *phase* oracle
+      (it flips the sign of the solutions). If it has more, qubit ``n`` is taken
+      as the *output* qubit of a bit-flip oracle (prepared in |->, as in the
+      course) and the remaining qubits are ancillas that the oracle must
+      return to |0>.
+    * ``grover(oracle=qp.sat_oracle(formula))``: the course's 3-SAT example.
+
+    ``iterations`` defaults to the optimal number for ``num_solutions``
+    solutions (taken from ``oracle.solutions`` when it exists, else 1).
+    """
+    if (marked is None) == (oracle is None):
+        raise QumError("Give either the marked bitstrings or an oracle (not both).",
+                       hint="grover('101')  or  grover(oracle=my_oracle, n=3)")
+
+    if marked is not None:
+        marked = [marked] if isinstance(marked, str) else list(marked)
+        n = len(marked[0])
+        if n < 2:
+            raise QumError("Grover search needs at least 2 qubits.")
+        oracle = grover_oracle(marked, n)
+        num_solutions = len(marked) if num_solutions is None else num_solutions
+    else:
+        if isinstance(oracle, QuantumCircuit):
+            oracle = Circuit.from_qiskit(oracle)
+        if not isinstance(oracle, Circuit):
+            raise QumError("The oracle must be a Circuit or a QuantumCircuit.")
+        n = getattr(oracle, "num_inputs", None) if n is None else n
+        if n is None:
+            raise QumError("Tell grover() how many qubits are searched.",
+                           hint="grover(oracle=my_oracle, n=3)")
+        if not 2 <= n <= oracle.num_qubits:
+            raise QumError(f"n must be between 2 and the oracle's {oracle.num_qubits} qubits, got {n}.")
+        if num_solutions is None:
+            num_solutions = len(getattr(oracle, "solutions", [None])) or 1
+
+    iterations = grover_iterations(n, num_solutions) if iterations is None else iterations
+    total = oracle.num_qubits
+    c = Circuit(total, bits=n if measure else None, name="Grover")
     c.h(range(n))
+    if total > n:                                   # bit-flip oracle: output qubit in |->
+        c.x(n).h(n)
+    diff = diffuser(n)
     for _ in range(iterations):
         c.barrier()
         c.add(oracle)
-        c.add(diff)
+        c.add(diff, qubits=range(n))
     c.iterations = iterations
-    return c.measure() if measure else c
+    c.oracle = oracle
+    if measure:
+        c.barrier()
+        c.measure(range(n))
+    return c
 
 
 # ---------------------------------------------------- Phase estimation

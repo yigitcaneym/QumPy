@@ -40,14 +40,14 @@ _HELP = {
     "shots": "number of repetitions used by .run()",
     "precision": "decimals shown when printing states / matrices",
     "seed": "random seed (None = different result each run)",
-    "backend": "'ideal' (perfect simulator) or 'noisy' (fake IBM device)",
+    "backend": "'ideal' (perfect simulator), 'noisy' (fake IBM device) or 'ibm' (real device)",
     "device": "fake device used when backend='noisy' ('manila', 'generic')",
     "draw": "default drawing style: 'mpl', 'text' or 'latex'",
     "auto_measure": "measure all qubits automatically if .run() finds no measurement",
 }
 
 _CHOICES = {
-    "backend": ("ideal", "noisy"),
+    "backend": ("ideal", "noisy", "ibm"),
     "device": ("manila", "generic"),
     "draw": ("mpl", "text", "latex"),
 }

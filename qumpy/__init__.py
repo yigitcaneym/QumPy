@@ -33,18 +33,21 @@ from .density import (
 )
 from .algorithms import (
     qft, inverse_qft, bell_circuit, ghz_circuit, teleportation, dj_oracle, deutsch_jozsa,
-    dj_answer, bernstein_vazirani, grover_oracle, diffuser, grover_iterations, grover,
+    dj_answer, bernstein_vazirani, grover_oracle, diffuser, grover_iterations, grover, sat_oracle,
     phase_estimation, estimated_phase,
 )
 from .dynamics import (
     hamiltonian, ising_chain, magnetization, zz_correlation, trotter_step, trotter_circuit,
     evolution_operator, evolve, exact_evolution, expectation, time_evolution, EvolutionResult,
 )
+from .ibm import ibm_service, ibm_backends, ibm_backend, backend_info
 from .cheatsheet import cheatsheet
+
+from qiskit.circuit import Parameter  # qp.Parameter("theta")
 
 from numpy import pi  # handy: qp.pi
 
 __all__ = [n for n in dir() if not n.startswith("_") and n not in {
     "config", "errors", "states", "linalg", "gates", "results", "circuit", "display",
-    "density", "algorithms", "dynamics",
+    "density", "algorithms", "dynamics", "ibm",
 }]

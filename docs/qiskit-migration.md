@@ -190,6 +190,54 @@ res.plot(exact=True)
 
 `time_evolution` does not need `qiskit-algorithms`.
 
+## Qiskit.ipynb: parameters and real devices
+
+```python
+# Qiskit
+from qiskit.circuit import Parameter
+th_par = Parameter("theta"); ph_par = Parameter("phi"); la_par = Parameter("lambda")
+qc.u(th_par, ph_par, la_par, qreg[0])
+qc.assign_parameters({th_par: np.pi, ph_par: 0, la_par: np.pi}, inplace=True)
+
+from qiskit_ibm_runtime import QiskitRuntimeService
+service = QiskitRuntimeService()
+print(service.backends())
+backend = service.backend("ibm_brisbane")
+backend.status(); backend.num_qubits; backend.basis_gates
+# backend.run(...) no longer works on real devices -> SamplerV2 code needed
+```
+
+```python
+# QumPy
+th, ph, la = qp.Parameter("theta"), qp.Parameter("phi"), qp.Parameter("lambda")
+c = qp.Circuit(1).u(th, ph, la, 0)
+c.assign(theta=qp.pi, phi=0, **{"lambda": qp.pi})   # 'lambda' is a Python keyword
+
+qp.ibm_backends()
+dev = qp.ibm_backend("ibm_brisbane")
+qp.backend_info(dev)
+c.measure().run(backend=dev)                       # SamplerV2 under the hood
+```
+
+## Grover.ipynb: the 3-SAT oracle
+
+```python
+# Qiskit: black_box_u_f(...), n_controlled_Z(...), inversion_about_average(...),
+#         input_state(...), registers fin / fout / aux, T = 2 iterations
+```
+
+```python
+# QumPy
+oracle = qp.sat_oracle([[1, 2, -3], [-1, -2, -3], [-1, 2, 3]])
+oracle.draw()                      # same fin / fout / aux layout as the course
+g = qp.grover(oracle=oracle)       # 2 iterations, chosen automatically
+g.run().plot()                     # '101'
+```
+
+The course's `black_box_u_f` only works when every clause uses exactly the
+variables x1, x2, x3. `sat_oracle` works for any number of variables and
+clauses, and `exactly_one=False` gives ordinary SAT.
+
 ## Version table
 
 ```python

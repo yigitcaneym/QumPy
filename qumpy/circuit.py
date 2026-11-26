@@ -35,7 +35,7 @@ from qiskit.circuit.exceptions import CircuitError
 from qiskit.circuit.library import Initialize, UnitaryGate
 
 from .config import Qum
-from .errors import QumError
+from .errors import QumAttributeError, QumError
 from .results import Counts
 
 _ALIASES = {
@@ -179,7 +179,7 @@ class Circuit:
         except AttributeError:
             options = [m for m in dir(QuantumCircuit) if not m.startswith("_")] + list(_ALIASES)
             close = difflib.get_close_matches(name, options, n=3)
-            raise QumError(f"Circuit has no gate or method called '{name}'.",
+            raise QumAttributeError(f"Circuit has no gate or method called '{name}'.",
                            hint=f"Did you mean: {', '.join(close)}?" if close else
                            "See qp.cheatsheet('gates') for the list of gates.") from None
         if not callable(attr):
@@ -272,6 +272,38 @@ class Circuit:
         self.qc.x(range(self.num_qubits))
         return self
 
+    # ------------------------------------------------------------- parameters
+    def assign(self, values=None, **by_name):
+        """Give values to the circuit's parameters (in place).
+
+            th = qp.Parameter("theta")
+            c = qp.Circuit(1).ry(th, 0)
+            c.assign(theta=qp.pi / 2)          # by name
+            c.assign({th: qp.pi / 2})          # or with the Parameter object
+            c.assign({"lambda": 0})            # names that are Python keywords
+        """
+        params = {p.name: p for p in self.qc.parameters}
+        mapping = {}
+        for key, value in {**(values or {}), **by_name}.items():
+            name = key if isinstance(key, str) else getattr(key, "name", str(key))
+            if name not in params:
+                raise QumError(f"This circuit has no free parameter called '{name}'.",
+                               hint=f"Free parameters: {', '.join(params) or 'none'}")
+            mapping[params[name]] = value
+        self.qc.assign_parameters(mapping, inplace=True)
+        return self
+
+    def _check_bound(self):
+        if self.qc.parameters:
+            import keyword
+
+            names = [p.name for p in self.qc.parameters]
+            first = names[0]
+            example = (f'c.assign({{"{first}": qp.pi}})' if keyword.iskeyword(first) or not first.isidentifier()
+                       else f"c.assign({first}=qp.pi)")
+            raise QumError(f"The circuit still has free parameters: {', '.join(names)}.",
+                           hint=f"Give them values first, e.g. {example}")
+
     # ------------------------------------------------------------ measurement
     def _ensure_bits(self, needed):
         if self.num_bits < needed:
@@ -333,6 +365,7 @@ class Circuit:
 
     def unitary(self):
         """The matrix U of the whole circuit (as a Qiskit ``Operator``)."""
+        self._check_bound()
         return qi.Operator.from_circuit(self._clean_for_unitary())
 
     def state(self, seed=None):
@@ -341,6 +374,7 @@ class Circuit:
         Mid-circuit measurements are simulated once (the state collapses
         randomly, exactly like the course's ``statevector_simulator``).
         """
+        self._check_bound()
         from qiskit_aer import AerSimulator
 
         if "statevector" not in _BACKEND_CACHE:
@@ -380,13 +414,19 @@ class Circuit:
 
         return show(self.unitary(), **kwargs)
 
-    def run(self, shots=None, backend=None, seed=None):
+    def run(self, shots=None, backend=None, seed=None, use_sampler=None):
         """Run the circuit ``shots`` times and count the results.
 
-        shots   : default ``Qum.shots``
-        backend : ``"ideal"`` (default ``Qum.backend``), ``"noisy"`` (fake IBM
-                  device ``Qum.device``) or any Qiskit backend object.
+        shots       : default ``Qum.shots``
+        backend     : ``"ideal"`` (default ``Qum.backend``), ``"noisy"`` (fake IBM
+                      device ``Qum.device``), ``"ibm"`` (least busy real IBM
+                      device, needs a saved IBM Quantum account), or any Qiskit
+                      backend object, e.g. ``qp.ibm_backend("ibm_brisbane")``.
+        use_sampler : run through the Qiskit Runtime ``SamplerV2`` primitive.
+                      ``None`` (default) decides automatically: real IBM devices
+                      need it because IBM removed ``backend.run()``.
         """
+        self._check_bound()
         shots = Qum.shots if shots is None else shots
         Qum._validate("shots", shots)
         seed = Qum.seed if seed is None else seed
@@ -403,7 +443,12 @@ class Circuit:
         tkw = {} if seed is None else {"seed_transpiler": seed}
         rkw = {} if seed is None else {"seed_simulator": seed}
         compiled = transpile(qc, be, **tkw)
-        counts = be.run(compiled, shots=shots, **rkw).result().get_counts()
+        if use_sampler is None:
+            use_sampler = _needs_sampler(be)
+        if use_sampler:
+            counts = _sampler_counts(be, compiled, shots, seed)
+        else:
+            counts = be.run(compiled, shots=shots, **rkw).result().get_counts()
         return Counts(counts, shots=shots, backend=label)
 
     # ------------------------------------------------------------ inspection
@@ -493,7 +538,53 @@ def _get_backend(backend, num_qubits):
         return _BACKEND_CACHE["ideal"], "ideal"
     if key in ("noisy", "fake", "device"):
         return noisy_backend(Qum.device, num_qubits), f"noisy ({Qum.device})"
-    raise QumError(f"Unknown backend '{backend}'.", hint="Use 'ideal' or 'noisy'.")
+    if key in ("ibm", "real", "hardware"):
+        from .ibm import ibm_backend
+
+        be = ibm_backend(min_qubits=num_qubits)
+        return be, be.name
+    raise QumError(f"Unknown backend '{backend}'.", hint="Use 'ideal', 'noisy' or 'ibm'.")
+
+
+def _is_real_ibm(backend):
+    try:
+        from qiskit_ibm_runtime import IBMBackend
+    except ImportError:
+        return False
+    return isinstance(backend, IBMBackend)
+
+
+def _needs_sampler(backend):
+    """Real IBM devices no longer support backend.run(): use SamplerV2 there."""
+    return _is_real_ibm(backend) or not hasattr(backend, "run")
+
+
+def _sampler_counts(backend, compiled, shots, seed=None):
+    """Run ``compiled`` with Qiskit Runtime's SamplerV2 and return Aer-style counts.
+
+    Registers are joined like ``get_counts()`` does: the last classical
+    register is written first, registers separated by a space.
+    """
+    import collections
+
+    try:
+        from qiskit_ibm_runtime import SamplerV2
+    except ImportError as e:
+        raise QumError("Running on IBM devices needs qiskit-ibm-runtime.",
+                       hint="pip install qiskit-ibm-runtime") from e
+    options = {}
+    if seed is not None and not _is_real_ibm(backend):
+        options = {"simulator": {"seed_simulator": seed}}
+    sampler = SamplerV2(mode=backend, options=options)
+    job = sampler.run([compiled], shots=shots)
+    if _is_real_ibm(backend):
+        print(f"Job {job.job_id()} sent to {backend.name}. Waiting for the result "
+              "(on real hardware this can take minutes or hours, depending on the queue)...")
+    data = job.result()[0].data
+    names = [c.name for c in compiled.cregs]
+    bits = {n: getattr(data, n).get_bitstrings() for n in names}
+    num = len(bits[names[0]])
+    return dict(collections.Counter(" ".join(bits[n][i] for n in reversed(names)) for i in range(num)))
 
 
 def noisy_backend(device=None, num_qubits=5):

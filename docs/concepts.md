@@ -83,6 +83,12 @@ imperfect gates, and circuits being rewritten for the chip's native gates and
 connectivity. You can also pass any Qiskit backend object:
 `c.run(backend=my_backend)`.
 
+`c.run(backend="ibm")` (or `backend=qp.ibm_backend("ibm_brisbane")`) runs on
+a **real** IBM quantum computer. IBM removed `backend.run()` for real devices,
+so QumPy sends the job through the `SamplerV2` primitive and converts the
+answer back into ordinary `Counts`, in the same format as the simulators. A
+real job waits in a queue and uses your IBM Quantum time.
+
 ## Classical bits are created for you
 
 `Circuit(3)` starts without classical bits. The first `measure()` adds a

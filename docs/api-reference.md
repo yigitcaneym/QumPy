@@ -7,7 +7,8 @@ docstring: `help(qp.grover)`.
 Contents: [Settings](#settings-qum) · [States](#states) ·
 [Linear algebra](#linear-algebra) · [Gates](#gates) · [Circuit](#circuit) ·
 [Counts](#counts) · [Display](#display) · [Density matrices](#density-matrices) ·
-[Algorithms](#algorithms) · [Dynamics](#dynamics) · [Errors](#errors)
+[Algorithms](#algorithms) · [Dynamics](#dynamics) ·
+[Real IBM devices](#real-ibm-devices) · [Errors](#errors)
 
 ---
 
@@ -18,7 +19,7 @@ Contents: [Settings](#settings-qum) · [States](#states) ·
 | `Qum.shots` | default number of shots for `run()` (positive int, default 1024) |
 | `Qum.precision` | decimals for `show`, `dirac` and numpy printing (default 4) |
 | `Qum.seed` | random seed for simulators, transpiler and random states (`None` = random) |
-| `Qum.backend` | `"ideal"` or `"noisy"` |
+| `Qum.backend` | `"ideal"`, `"noisy"` or `"ibm"` (least busy real device) |
 | `Qum.device` | noisy device: `"manila"` (FakeManilaV2, 5 qubits) or `"generic"` (GenericBackendV2) |
 | `Qum.draw` | default style for `Circuit.draw()`: `"mpl"`, `"text"`, `"latex"` |
 | `Qum.auto_measure` | `run()` measures all qubits when the circuit has no measurement |
@@ -124,7 +125,17 @@ cswap mcx mcp id barrier reset append`, and the rest. Aliases: `cnot`,
 | `unitary()` | `Operator` of the circuit (final measurements ignored) |
 | `probabilities(decimals=None)` | exact outcome probabilities |
 | `density_matrix()` | `DensityMatrix` of the final state |
-| `run(shots=None, backend=None, seed=None)` | `Counts`; backend `"ideal"`, `"noisy"` or a Qiskit backend |
+| `run(shots=None, backend=None, seed=None, use_sampler=None)` | `Counts`; backend `"ideal"`, `"noisy"`, `"ibm"` or a backend object. Real IBM devices are run through `SamplerV2` automatically |
+
+### Parameters
+
+| Method | Description |
+|---|---|
+| `Parameter("theta")` | a free parameter (Qiskit's `Parameter`, also `qp.Parameter`) |
+| `assign(values=None, **by_name)` | set parameter values in place: `c.assign(theta=qp.pi)`, `c.assign({th: 0})`, `c.assign({"lambda": 0})` |
+
+`state()`, `unitary()` and `run()` raise a `QumError` naming the parameters
+that still have no value.
 
 ### Inspection and display
 
@@ -223,7 +234,8 @@ All of these return a `Circuit`.
 | `dj_oracle(n, kind="balanced", value=0, a=None)` | Deutsch–Jozsa oracle on n+1 qubits |
 | `deutsch_jozsa(n=3, kind="balanced", oracle=None, ...)` | full circuit; `dj_answer(counts)` → `"constant"` / `"balanced"` |
 | `bernstein_vazirani(secret)` | measurement returns `secret` |
-| `grover(marked, iterations=None, measure=True)` | `marked`: one bitstring or a list of them |
+| `grover(marked=None, iterations=None, measure=True, oracle=None, n=None, num_solutions=None)` | search for `marked` bitstring(s), **or** use your own `oracle` on the first `n` qubits: a phase oracle with exactly `n` qubits, or a bit-flip oracle whose qubit `n` is the output (prepared in \|−⟩) and the rest are ancillas |
+| `sat_oracle(formula, exactly_one=True)` | bit-flip oracle for a CNF formula such as `[[1, 2, -3], [-1, -2, -3], [-1, 2, 3]]` (`-3` = NOT x3); registers `fin`, `fout`, `aux`; `.solutions` lists the satisfying bitstrings |
 | `grover_oracle(marked)`, `diffuser(n)`, `grover_iterations(n, M)` | building blocks |
 | `phase_estimation(U, n_counting=3, eigenstate=None)` | QPE; `eigenstate` may be a label, vector or `Circuit` |
 | `estimated_phase(counts, n_counting=None)` | φ from the most likely outcome |
@@ -247,7 +259,27 @@ All of these return a `Circuit`.
 
 ---
 
+## Real IBM devices
+
+Needs `qiskit-ibm-runtime` and an IBM Quantum account saved once with
+`QiskitRuntimeService.save_account(token=..., channel="ibm_quantum_platform", set_as_default=True)`.
+QumPy never handles your token.
+
+| Function | Description |
+|---|---|
+| `ibm_backends(min_qubits=1)` | names of the real devices your account can use |
+| `ibm_backend(name=None, min_qubits=1)` | a device by name, or the least busy one |
+| `backend_info(backend, show=True)` | name, version, qubits, basis gates, operational, pending jobs (also works for fake backends) |
+| `ibm_service()` | the underlying `QiskitRuntimeService` |
+
+`c.run(backend=dev)` or `c.run(backend="ibm")` sends the job, prints its ID,
+and waits for the result. IBM removed `backend.run()` for real devices, so
+QumPy uses the `SamplerV2` primitive and returns ordinary `Counts`.
+
+---
+
 ## Errors
 
 `QumError` is raised for every mistake QumPy can explain. It has a message
-and an optional `.hint`.
+and an optional `.hint`. Unknown circuit methods raise `QumAttributeError`,
+which is both a `QumError` and an `AttributeError`, so `hasattr()` works.
