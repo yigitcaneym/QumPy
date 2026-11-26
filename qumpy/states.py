@@ -1,5 +1,7 @@
 """Making quantum states the easy way.
 
+Examples::
+
     ket("0")            |0>
     ket("01")           |01>   (qubit 1 = '0', qubit 0 = '1' -- Qiskit order)
     ket("+")            (|0> + |1>)/sqrt(2)      also "-", "r" (= |+i>), "l" (= |-i>)

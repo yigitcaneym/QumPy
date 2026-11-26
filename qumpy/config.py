@@ -1,5 +1,7 @@
 """The ``Qum`` object: global settings + a single entry point to everything.
 
+Examples::
+
     from qumpy import Qum
 
     Qum.shots = 2000          # every .run() now uses 2000 shots
@@ -133,7 +135,9 @@ class _Qum:
 
     @contextlib.contextmanager
     def using(self, **settings):
-        """Temporarily change settings::
+        """Temporarily change settings inside a ``with`` block.
+
+        Example::
 
             with Qum.using(shots=10, seed=1):
                 c.run()

@@ -1,5 +1,7 @@
 """Gates as matrices (Qiskit ``Operator`` objects).
 
+Examples::
+
     X, Y, Z, H, S, T, I          fixed 1-qubit gates
     Rx(t), Ry(t), Rz(t), P(phi)  rotations / phase
     CNOT, CZ, SWAP, TOFFOLI      multi-qubit gates

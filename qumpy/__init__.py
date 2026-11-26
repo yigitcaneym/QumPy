@@ -1,5 +1,7 @@
 """QumPy -- quantum computing for beginners, on top of Qiskit.
 
+Examples::
+
     import qumpy as qp
     from qumpy import Qum
 

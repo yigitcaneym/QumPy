@@ -225,5 +225,5 @@ c.run(backend=dev).plot()            # waits in IBM's queue, then plots
 * `qp.cheatsheet()` prints every command.
 * [Concepts](concepts.md) explains the parts that confuse people.
 * The [API reference](api-reference.md) lists every function.
-* [`examples/QumPy_Tutorial.ipynb`](../examples/QumPy_Tutorial.ipynb) is this
+* [`examples/QumPy_Tutorial.ipynb`](https://github.com/yigitcaneym/QumPy/blob/main/examples/QumPy_Tutorial.ipynb) is this
   tour as a runnable notebook.

@@ -8,3 +8,8 @@ dist/
 .venv/
 venv/
 .DS_Store
+
+# Sphinx build output and notebook copies
+docs/_build/
+docs/examples/
+docs/jupyter_execute/

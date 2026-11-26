@@ -18,10 +18,15 @@ dependencies = [
     "pylatexenc>=2.10",
 ]
 
+[project.urls]
+Homepage = "https://github.com/yigitcaneym/QumPy"
+Documentation = "https://yigitcaneym.github.io/QumPy/"
+
 [project.optional-dependencies]
 noisy = ["qiskit-ibm-runtime>=0.30"]
 notebook = ["jupyter", "ipykernel"]
 dev = ["pytest>=7"]
+docs = ["sphinx>=8", "furo", "myst-nb>=1.1", "sphinx-copybutton"]
 
 [tool.setuptools.packages.find]
 include = ["qumpy*"]

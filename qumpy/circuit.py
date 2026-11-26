@@ -1,5 +1,7 @@
 """``Circuit``: a beginner friendly wrapper around Qiskit's ``QuantumCircuit``.
 
+Examples::
+
     c = Circuit(2)            # 2 qubits, classical bits are added when needed
     c.h(0).cx(0, 1)           # gates can be chained
     c.draw()                  # picture of the circuit
@@ -323,6 +325,7 @@ class Circuit:
         * ``c.measure([0, 2])``    qubit 0 -> bit 0, qubit 2 -> bit 2
         * ``c.measure(2, 0)``      qubit 2 -> bit 0
         * ``c.measure("psi", "crz")`` named registers
+
         Classical bits are created automatically when there are none.
         """
         q = self._qubit_indices("all" if qubits is None else qubits)
@@ -417,14 +420,25 @@ class Circuit:
     def run(self, shots=None, backend=None, seed=None, use_sampler=None):
         """Run the circuit ``shots`` times and count the results.
 
-        shots       : default ``Qum.shots``
-        backend     : ``"ideal"`` (default ``Qum.backend``), ``"noisy"`` (fake IBM
-                      device ``Qum.device``), ``"ibm"`` (least busy real IBM
-                      device, needs a saved IBM Quantum account), or any Qiskit
-                      backend object, e.g. ``qp.ibm_backend("ibm_brisbane")``.
-        use_sampler : run through the Qiskit Runtime ``SamplerV2`` primitive.
-                      ``None`` (default) decides automatically: real IBM devices
-                      need it because IBM removed ``backend.run()``.
+        Parameters
+        ----------
+        shots : int, optional
+            Number of repetitions. Default: ``Qum.shots``.
+        backend : str or backend, optional
+            ``"ideal"`` (default ``Qum.backend``), ``"noisy"`` (fake IBM device
+            ``Qum.device``), ``"ibm"`` (least busy real IBM device, needs a
+            saved IBM Quantum account), or any Qiskit backend object, e.g.
+            ``qp.ibm_backend("ibm_brisbane")``.
+        seed : int, optional
+            Random seed. Default: ``Qum.seed``.
+        use_sampler : bool, optional
+            Run through the Qiskit Runtime ``SamplerV2`` primitive. ``None``
+            (default) decides automatically: real IBM devices need it because
+            IBM removed ``backend.run()``.
+
+        Returns
+        -------
+        Counts
         """
         self._check_bound()
         shots = Qum.shots if shots is None else shots

@@ -1,5 +1,7 @@
 """Ready-made circuits for the algorithms of the course.
 
+Examples::
+
     qft(n), inverse_qft(n)              Quantum Fourier Transform
     bell_circuit(), ghz_circuit(n)      entangled states
     teleportation(psi)                  quantum teleportation

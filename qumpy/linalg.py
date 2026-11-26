@@ -1,5 +1,7 @@
 """Linear algebra helpers (bra-ket maths) -- the numpy part of the course.
 
+Examples::
+
     inner(a, b)        <a|b>
     outer(a, b)        |a><b|
     norm(v)            ||v||

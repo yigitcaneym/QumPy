@@ -1,5 +1,7 @@
 """Showing things: LaTeX, Dirac notation, Bloch spheres, histograms.
 
+Examples::
+
     show(x)        pretty matrix / vector (LaTeX in Jupyter, text elsewhere)
     dirac(state)   "0.7071|00⟩ + 0.7071|11⟩"
     bloch(state)   Bloch sphere of every qubit

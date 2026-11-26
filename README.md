@@ -113,6 +113,9 @@ replaces.
 
 ## Documentation
 
+**Website: <https://yigitcaneym.github.io/QumPy/>** (searchable, with an API
+reference generated from the code). The same pages are in [`docs/`](docs/):
+
 | Page | What's in it |
 |------|--------------|
 | [Installation](docs/installation.md) | installing, updating, and fixing common errors |
@@ -132,6 +135,22 @@ pytest
 
 The tests check QumPy against Qiskit itself: the QFT against `QFTGate`, Trotter
 against exact evolution, teleportation fidelity, Grover success rate, and so on.
+
+## Building the docs
+
+The website is built with [Sphinx](https://www.sphinx-doc.org/) and published
+to GitHub Pages automatically on every push to `main`
+(`.github/workflows/docs.yml`). To build it on your computer:
+
+```bash
+pip install -e ".[docs]"
+```
+
+```bash
+sphinx-build -b html docs docs/_build/html
+```
+
+Then open `docs/_build/html/index.html`.
 
 ## Troubleshooting
 

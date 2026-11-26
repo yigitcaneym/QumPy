@@ -1,5 +1,7 @@
 """Hamiltonians and time evolution (Trotterization).
 
+Examples::
+
     H = hamiltonian({"ZZ": 1, "XI": -0.1})       # = Z(x)Z - 0.1 X(x)I
     H = ising_chain(L=6, J=0.2, h=1.2, alpha=pi/8)
     c = trotter_circuit(H, time=20, steps=10, order=2)

@@ -1,5 +1,7 @@
 """Density matrices, entanglement and mixed states.
 
+Examples::
+
     rho = density_matrix(bell("phi+"))
     keep(rho, 1)                 reduced state of qubit 1   (what you KEEP)
     partial_trace(rho, [0])      same thing, Qiskit style   (what you TRACE OUT)
