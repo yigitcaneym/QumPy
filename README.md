@@ -40,44 +40,24 @@ plot_histogram(counts)
 
 ## Installation
 
-You need Python ≥ 3.10. Install straight from GitHub:
+You need Python ≥ 3.10. You **don't** need git. Install straight from GitHub:
 
 ```bash
-pip install "qumpy[noisy] @ git+https://github.com/yigitcaneym/QumPy.git"
+pip install "qumpy[noisy] @ https://github.com/yigitcaneym/QumPy/archive/refs/heads/main.zip"
 ```
 
-The `noisy` extra installs `qiskit-ibm-runtime`, which provides the FakeManila
-device used by `backend="noisy"`. Leave out `[noisy]` if you only need the
-ideal simulator:
+Then check that it works:
 
 ```bash
-pip install git+https://github.com/yigitcaneym/QumPy.git
+python -c "import qumpy as qp; qp.versions()"
 ```
 
-To update to the latest version later:
+> **Got `Cannot find command 'git'`?** You used a link starting with
+> `git+https://`, which needs git. Use the `.zip` command above instead.
 
-```bash
-pip install --upgrade --force-reinstall --no-deps git+https://github.com/yigitcaneym/QumPy.git
-```
-
-In a Jupyter notebook, use `%pip install ...` with the same text, then restart
-the kernel.
-
-**For development** (tests, docs, editing the code), clone the repository
-instead:
-
-```bash
-git clone https://github.com/yigitcaneym/QumPy.git
-cd QumPy
-pip install -e ".[noisy,notebook,dev]"
-```
-
-Check the installation:
-
-```python
-import qumpy as qp
-qp.versions()
-```
+The [installation guide](docs/installation.md) covers virtual environments,
+Jupyter, updating to a new version, development installs and fixes for
+common errors.
 
 ## The `Qum` object
 
@@ -134,6 +114,7 @@ replaces.
 
 | Page | What's in it |
 |------|--------------|
+| [Installation](docs/installation.md) | installing, updating, and fixing common errors |
 | [Getting started](docs/getting-started.md) | a 15-minute tour, from a ket to Grover |
 | [Concepts](docs/concepts.md) | qubit order, `state()` vs `run()`, ideal vs noisy, the `Qum` object |
 | [API reference](docs/api-reference.md) | every function and method |
@@ -153,25 +134,9 @@ against exact evolution, teleportation fidelity, Grover success rate, and so on.
 
 ## Troubleshooting
 
-**`ModuleNotFoundError: No module named 'qumpy'` after `pip install -e .` (macOS).**
-macOS sometimes marks files inside a `.venv` folder as *hidden*, and Python
-then skips the hidden `.pth` file that an editable install relies on. Use one
-of these fixes:
-
-```bash
-chflags nohidden .venv/lib/python3.*/site-packages/__editable__*.pth
-```
-
-```bash
-pip install .
-```
-
-The second command makes a regular, non-editable install, which doesn't need a
-`.pth` file. Re-run it after you change QumPy's source.
-
-**Jupyter can't find QumPy.** Make sure the notebook kernel is the Python
-environment where QumPy is installed. In a notebook, run
-`import sys; sys.executable` and compare.
+See [Common errors](docs/installation.md#common-errors) in the installation
+guide: missing git, `No module named 'qumpy'` in Jupyter or on macOS,
+PowerShell blocking activation scripts, and the noisy backend.
 
 ## License
 

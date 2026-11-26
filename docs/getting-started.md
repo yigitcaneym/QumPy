@@ -1,5 +1,7 @@
 # Getting started
 
+Install QumPy first: see [Installation](installation.md).
+
 This tour takes about 15 minutes and follows the order of the course: vectors
 and kets, gates, circuits, measurement, entanglement, algorithms, and time
 evolution. Run it in a Jupyter notebook so the pictures and LaTeX show up.
