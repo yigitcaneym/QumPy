@@ -138,6 +138,7 @@ replaces.
 | [Concepts](docs/concepts.md) | qubit order, `state()` vs `run()`, ideal vs noisy, the `Qum` object |
 | [API reference](docs/api-reference.md) | every function and method |
 | [Coming from Qiskit](docs/qiskit-migration.md) | course notebook code → QumPy, side by side |
+| [Simple example](examples/Simple_Example.ipynb) | draw a Bell circuit, measure it, plot a histogram |
 | [Tutorial notebook](examples/QumPy_Tutorial.ipynb) | runnable version of the course TPs |
 
 ## Tests
